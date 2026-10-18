@@ -1,9 +1,10 @@
 # CursorCodingSkills
 
-Shared **SOLID / guardrail** Cursor skills, one pack per language.
+Shared **SOLID / guardrail** Cursor skills, plus a reusable **Python guardrail
+package** you can run from project tests.
 
-Seeded from recurring rules used across APSystem, AutoBalancingAIBot (ESP32),
-SoArm101, and related projects: file-size limits, concrete typing, modularity.
+Seeded from recurring rules used across multiple projects: file-size limits, concrete typing, one type per
+file, no nested classes, no variadic / stacked tuple returns.
 
 ## Skills
 
@@ -20,7 +21,57 @@ SoArm101, and related projects: file-size limits, concrete typing, modularity.
 
 Optional always-on rules live under `rules/*.mdc`.
 
-## Deploy (recommended)
+## Python guardrails package
+
+Importable package: `python_guardrails/`
+
+| Guard | Checks |
+|-------|--------|
+| `FileSizeGuard` | max 400 lines/file, max 30 methods/class |
+| `PythonStructureGuard` | one type/file, no nested class, no variadic/stacked tuples |
+| `PythonTypingGuard` | no `Any` / `object` / bare `dict`/`list`/`tuple`/`set` |
+| `check_roots` / `assert_roots_clean` | run the set in one call |
+
+### Run package self-tests
+
+```powershell
+.\run_tests.ps1
+```
+
+### Use in a project
+
+1. Deploy into the project (installs skills/rules **and** junctions/copies the package):
+
+```powershell
+.\deploy.ps1 -ProjectPath "E:\AI\APSystem"
+```
+
+This creates `E:\AI\APSystem\tools\python_guardrails`.
+
+2. Put `tools\` on `PYTHONPATH`, then in a test:
+
+```python
+from pathlib import Path
+from python_guardrails import assert_roots_clean
+
+def test_source_guardrails() -> None:
+    root = Path(__file__).resolve().parents[1]
+    assert_roots_clean(
+        size_roots=[root / "apsystem", root / "frontend"],
+        python_roots=[root / "apsystem"],
+    )
+```
+
+Sibling layout also works without deploy: if `../CursorCodingSkills` exists, add
+that folder to `PYTHONPATH` instead of `tools\`.
+
+Skip installing the package during deploy:
+
+```powershell
+.\deploy.ps1 -ProjectPath "E:\AI\APSystem" -SkipGuardrails
+```
+
+## Deploy (skills / rules)
 
 Install into your **user** Cursor skills directory (available in every project):
 
@@ -28,7 +79,7 @@ Install into your **user** Cursor skills directory (available in every project):
 .\deploy.ps1
 ```
 
-Install into a **single project** (`.cursor/skills` + `.cursor/rules`):
+Install into a **single project** (`.cursor/skills` + `.cursor/rules` + `tools/python_guardrails`):
 
 ```powershell
 .\deploy.ps1 -ProjectPath "E:\AI\APSystem"
@@ -53,8 +104,10 @@ List what would be installed:
 - Ask the agent to “follow solid-python / file-size limits” or rely on skill
   descriptions for auto-invocation when editing matching languages.
 - Project rules (`*.mdc` with `alwaysApply: true`) apply automatically in that repo.
+- Project tests can import `python_guardrails` when `tools\` (or this repo) is on `PYTHONPATH`.
 
 ## Updating
 
-Edit skills in this repo, then re-run `deploy.ps1` (junctions stay linked;
-copy mode overwrites).
+Edit skills / `python_guardrails` in this repo, then re-run `deploy.ps1`
+(junctions stay linked; copy mode overwrites). Re-run `.\run_tests.ps1` after
+guardrail changes.
