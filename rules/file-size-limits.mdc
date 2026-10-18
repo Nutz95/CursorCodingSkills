@@ -1,0 +1,18 @@
+---
+description: Max 400 lines per file and 30 methods per class
+globs: "**/*.{py,js,css,html,ps1,cpp,h,hpp,cu,cuh}"
+alwaysApply: true
+---
+
+# File and class size limits
+
+Hard limits:
+
+- **Max 400 lines** per source file
+- **Max 30 methods/functions** per class
+
+## Required behavior
+
+1. Split before exceeding limits (one responsibility per file)
+2. Prefer extracting helpers/views/services over growing a god-class
+3. Generated bundles may exceed limits; do not hand-edit them

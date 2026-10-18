@@ -1,0 +1,16 @@
+---
+description: Forbid Python object/Any typing; require concrete types
+globs: "**/*.py"
+alwaysApply: true
+---
+
+# No object / Any typing
+
+Never use `object`, `typing.Any`, bare `dict`, bare `list`, or bare `tuple` as types.
+
+## Required
+
+- Prefer `TypedDict`, `dataclass`, `NamedTuple`, enums, and unions (`str | None`)
+- Annotate every public function parameter and return type
+- Use `dict[str, str]`, `list[Concrete]`, `tuple[Concrete, ...]`, etc.
+- One class / TypedDict / enum per file when practical
