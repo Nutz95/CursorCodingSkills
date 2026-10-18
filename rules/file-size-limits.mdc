@@ -13,6 +13,7 @@ Hard limits:
 
 ## Required behavior
 
-1. Split before exceeding limits (one responsibility per file)
+1. Split before exceeding limits (one responsibility / one type per file)
 2. Prefer extracting helpers/views/services over growing a god-class
 3. Generated bundles may exceed limits; do not hand-edit them
+4. Never put a second class/TypedDict/Enum in the same file to “save a split”
