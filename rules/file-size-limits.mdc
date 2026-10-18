@@ -10,6 +10,7 @@ Hard limits:
 
 - **Max 400 lines** per source file
 - **Max 30 methods/functions** per class
+- Prefer function bodies under **~60 lines** (extract helpers)
 
 ## Required behavior
 
@@ -17,3 +18,4 @@ Hard limits:
 2. Prefer extracting helpers/views/services over growing a god-class
 3. Generated bundles may exceed limits; do not hand-edit them
 4. Never put a second class/TypedDict/Enum in the same file to “save a split”
+5. No nested classes — see `no-nested-classes`

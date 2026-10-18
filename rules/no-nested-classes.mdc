@@ -1,0 +1,19 @@
+---
+description: Ban nested classes; extract inner types to sibling modules
+globs: "**/*.{py,js,cpp,h,hpp,cu,cuh}"
+alwaysApply: true
+---
+
+# No nested classes
+
+Do not nest a `class` / type definition inside another class.
+
+## Required
+
+1. Move the inner type to its own file (Python: one type per file; C++: own header/TU)
+2. Prefer composition / a named collaborator over an inner helper type
+3. Nested lambdas / local functions for tiny pure helpers are fine; nested **types** are not
+
+## Why
+
+Nested types hide dependencies, inflate the outer class, and block clean unit testing and DI.

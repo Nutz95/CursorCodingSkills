@@ -1,7 +1,7 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-  Runs CursorCodingSkills python_guardrails self-tests.
+  Runs CursorCodingSkills python_guardrails and esp_cpp_guardrails self-tests.
 #>
 param(
     [string]$PythonExe = ""
@@ -16,15 +16,25 @@ if (-not $PythonExe) {
 }
 
 $env:PYTHONPATH = $Root
+$failed = 0
 
 Write-Host "==> python_guardrails tests" -ForegroundColor Cyan
-$failed = 0
 Get-ChildItem -Path (Join-Path $Root "tests") -Filter "test_*.py" | Sort-Object Name | ForEach-Object {
     Write-Host "  - $($_.Name)"
     & $PythonExe $_.FullName
     if ($LASTEXITCODE -ne 0) {
         $failed += 1
     }
+}
+
+Write-Host "==> esp_cpp_guardrails tests" -ForegroundColor Cyan
+$espTest = Join-Path $Root "tests\test_esp_cpp_guardrails.ps1"
+Write-Host "  - test_esp_cpp_guardrails.ps1"
+$espProc = Start-Process -FilePath "powershell.exe" -ArgumentList @(
+    "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $espTest
+) -Wait -PassThru -NoNewWindow
+if ($espProc.ExitCode -ne 0) {
+    $failed += 1
 }
 
 if ($failed -gt 0) {
