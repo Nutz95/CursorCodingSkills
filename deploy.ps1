@@ -3,6 +3,10 @@
 .SYNOPSIS
   Deploys CursorCodingSkills into the user skills folder and/or a project .cursor.
   Optionally installs reusable python_guardrails and esp_cpp_guardrails into the project.
+
+  Skills are discovered as any directory under skills/ that contains SKILL.md
+  (including nested categories such as skills/maixcam/host-simulator).
+  Install name = relative path under skills/ with path separators replaced by '-'.
 #>
 param(
     [string]$ProjectPath = "",
@@ -24,6 +28,22 @@ $UserSkills = Join-Path $env:USERPROFILE ".cursor\skills"
 
 function Write-Step([string]$Message) {
     Write-Host "==> $Message" -ForegroundColor Cyan
+}
+
+function Get-SkillLeaves {
+    param([Parameter(Mandatory = $true)][string]$SkillsRoot)
+
+    $leaves = @()
+    Get-ChildItem -Path $SkillsRoot -Recurse -Filter "SKILL.md" -File | ForEach-Object {
+        $skillDir = $_.Directory
+        $relative = $skillDir.FullName.Substring($SkillsRoot.Length).TrimStart("\", "/")
+        $installName = ($relative -replace "[\\/]", "-")
+        $leaves += [pscustomobject]@{
+            Name      = $installName
+            SourceDir = $skillDir.FullName
+        }
+    }
+    return $leaves | Sort-Object Name
 }
 
 function Install-SkillLink {
@@ -105,9 +125,12 @@ function Install-ToolPackage {
 }
 
 Write-Step "CursorCodingSkills deploy ($Mode)"
-$skillDirs = Get-ChildItem -Path $SkillsSource -Directory
-foreach ($dir in $skillDirs) {
-    Install-SkillLink -Name $dir.Name -SourceDir $dir.FullName -DestinationDir $UserSkills
+$skillLeaves = @(Get-SkillLeaves -SkillsRoot $SkillsSource)
+if ($skillLeaves.Count -eq 0) {
+    Write-Host "No SKILL.md leaves found under $SkillsSource" -ForegroundColor Yellow
+}
+foreach ($leaf in $skillLeaves) {
+    Install-SkillLink -Name $leaf.Name -SourceDir $leaf.SourceDir -DestinationDir $UserSkills
 }
 
 if ($ProjectPath) {
@@ -115,8 +138,8 @@ if ($ProjectPath) {
     $projectSkills = Join-Path $project ".cursor\skills"
     $projectRules = Join-Path $project ".cursor\rules"
     Write-Step "Project target: $project"
-    foreach ($dir in $skillDirs) {
-        Install-SkillLink -Name $dir.Name -SourceDir $dir.FullName -DestinationDir $projectSkills
+    foreach ($leaf in $skillLeaves) {
+        Install-SkillLink -Name $leaf.Name -SourceDir $leaf.SourceDir -DestinationDir $projectSkills
     }
     Install-Rules -DestinationRules $projectRules
     if (-not $SkipGuardrails) {
