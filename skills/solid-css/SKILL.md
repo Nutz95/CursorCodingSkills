@@ -2,8 +2,8 @@
 name: solid-css
 description: >-
   SOLID CSS guardrails: max 400 lines per CSS file, one theme/concern per file,
-  CSS variables for brand tokens, no hand-editing generated bundles. Use when
-  editing stylesheets, layout, or design tokens.
+  CSS variables for brand tokens, no hand-editing generated bundles — edit
+  sources then rebuild. Use when editing stylesheets, layout, or design tokens.
 ---
 
 # SOLID CSS
@@ -19,6 +19,7 @@ description: >-
 - Prefer composition over deep nesting
 - Do not hand-edit generated `*.bundle.css`
 - Keep selectors local to a view when possible
+- After editing source CSS that feeds a bundler, **rebuild** before deploy (see `ops-web-asset-bundle-etag`)
 
 ## Checklist
 
