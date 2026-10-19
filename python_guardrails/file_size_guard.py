@@ -1,3 +1,4 @@
+import ast
 from pathlib import Path
 import re
 
@@ -20,8 +21,6 @@ class FileSizeGuard:
         self._skipped_parts = skipped_parts or frozenset(
             {"__pycache__", ".venv", "site-packages", "static", "node_modules"}
         )
-        self._class_pattern = re.compile(r"^\s*class\s+(\w+)")
-        self._method_pattern = re.compile(r"^\s{4}def\s+\w+\(")
         self._js_method_pattern = re.compile(
             r"^\s{2}(?:async\s+)?(?:_?[a-zA-Z]\w*)\s*\("
         )
@@ -63,39 +62,32 @@ class FileSizeGuard:
         path: Path,
         lines: list[str],
     ) -> list[GuardViolation]:
+        del lines  # AST path; signature kept for call-site compatibility
+        source = path.read_text(encoding="utf-8")
+        try:
+            tree = ast.parse(source, filename=str(path))
+        except SyntaxError:
+            return []
         violations: list[GuardViolation] = []
-        current_class: str | None = None
-        method_count = 0
-        for line in lines:
-            class_match = self._class_pattern.match(line)
-            if class_match:
-                if current_class is not None and method_count > self._max_methods:
-                    violations.append(
-                        GuardViolation(
-                            path=path,
-                            kind="methods",
-                            detail=(
-                                f"{current_class} has {method_count} methods "
-                                f"> {self._max_methods}"
-                            ),
-                        )
-                    )
-                current_class = class_match.group(1)
-                method_count = 0
+        for node in tree.body:
+            if not isinstance(node, ast.ClassDef):
                 continue
-            if current_class is not None and self._method_pattern.match(line):
-                method_count += 1
-        if current_class is not None and method_count > self._max_methods:
-            violations.append(
-                GuardViolation(
-                    path=path,
-                    kind="methods",
-                    detail=(
-                        f"{current_class} has {method_count} methods "
-                        f"> {self._max_methods}"
-                    ),
-                )
+            method_count = sum(
+                1
+                for child in node.body
+                if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef))
             )
+            if method_count > self._max_methods:
+                violations.append(
+                    GuardViolation(
+                        path=path,
+                        kind="methods",
+                        detail=(
+                            f"{node.name} has {method_count} methods "
+                            f"> {self._max_methods}"
+                        ),
+                    )
+                )
         return violations
 
     def _check_js_methods(
