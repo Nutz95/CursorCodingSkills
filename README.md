@@ -140,11 +140,20 @@ This creates:
 - `C:\MyProject\tools\python_guardrails`
 - `C:\MyProject\tools\esp_cpp_guardrails`
 
-ESP-only project (skip Python package):
+Language-filtered tool packages (prefer this over the old Skip* switches):
 
 ```powershell
-.\deploy.ps1 -ProjectPath "C:\MyEspFw" -SkipPythonGuardrails
+# Python-only app (e.g. MaixCam host/device Python) — for CI, use Copy
+.\deploy.ps1 -ProjectPath "C:\MyPythonApp" -Mode Copy -Languages Python
+
+# ESP32 / C++ firmware only
+.\deploy.ps1 -ProjectPath "C:\MyEspFw" -Mode Copy -Languages EspCpp
+
+# Both packages
+.\deploy.ps1 -ProjectPath "C:\MyMixed" -Mode Copy -Languages Python,EspCpp
 ```
+
+Legacy switches `-SkipPythonGuardrails` / `-SkipEspCppGuardrails` / `-SkipGuardrails` still work.
 
 2. Hook your project tests, for example:
 
