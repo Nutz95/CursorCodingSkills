@@ -17,14 +17,20 @@ description: >-
 - Max **~30 methods** per class
 - Prefer function bodies under **~60 lines** (extract helpers)
 - **No nested classes** — move inner types to their own header/TU
-- **Exactly one** primary type (`class` / `struct` / `enum` / `enum class`) per public header when the project opts in (bring-up / strict surfaces)
+- **Exactly one** primary type (`class` / `struct` / `enum` / `enum class`) per public header
+  when the project’s guardrails enable one-type-per-header on that root. Do not pack
+  `enum` + `struct` + `I*` into one `.h`; split them.
+
+Wire the check with your repo’s guardrail tool (e.g. `esp_cpp_guardrails` /
+`-OneTypePerHeaderRoots` listing the trees you care about — board HAL, bridges, etc.).
 
 ## Language & style
 
 - Committed code/comments/docs in **English**
 - Always use braces for `if` / `for` / `while` / `switch`
 - No single-line function bodies for non-trivial logic
-- Descriptive names (`telemetryManager`, not `mgr` / `tmp` except trivial loop indices)
+- Descriptive names (`telemetryManager`, not `mgr` / `tmp` / `spr` except trivial loop indices).
+  Prefer pronounceable words (`canvas`, `frameBuffer`) over cryptic abbreviations
 - Prefer one `namespace` block per translation unit
 - Headers declare intent; `.cpp` files stay boring and direct
 - Public methods on `I*.h` interfaces (and other opted-in public headers) need a one-line `///` intent comment

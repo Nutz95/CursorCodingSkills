@@ -43,6 +43,13 @@ Deploy installs L0 + MaixCam skills into a project; keep product-only rules in t
 | `skills/ops-parallel-test-suites` | Suite layout + in-process pytest pool + `node --test` |
 | `skills/ops-portable-python-package` | Host ZIP: whitelist, wheelhouse, offline venv (no simulator jargon) |
 
+### ESP category
+
+| Skill folder (install name) | Intent |
+|-----------------------------|--------|
+| `skills/esp/rgb565-color` → `esp-rgb565-color` | RGB888→RGB565 packing + sprite present endian traps |
+| `skills/esp/pocket-dongle-s3-096-display` → `esp-pocket-dongle-s3-096-display` | Pocket-Dongle-S3-0.96 ST7735 pins, TFT_eSPI flags, sprites / JPEG / LVGL |
+
 ### MaixCam category
 
 | Skill folder (install name) | Intent |
@@ -92,6 +99,8 @@ company product, move that to the product `.cursor` / `agent.md` (L1).
 | `python-test-fakes` | Fakes under `tests/fakes/`; no monkeypatch setattr |
 | `python-no-owned-positional-tuples` | No NamedTuple / namedtuple VOs |
 | `no-local-plan-refs-in-shipped-docs` | No « Lot N » / `Plans/*_plan.md` in shipped text |
+
+ESP skills live under `skills/esp/` (e.g. `esp-rgb565-color`, `esp-pocket-dongle-s3-096-display`).
 
 Exemption markers (Python): `# solid-getattr:`, `# solid-nested-def:`,
 `# solid-function-max-lines:`.
