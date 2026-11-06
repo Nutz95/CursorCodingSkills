@@ -1,0 +1,60 @@
+---
+description: Forbid redundant bool()/str()/int() casts on values already typed as that type
+globs: "**/*.py"
+alwaysApply: true
+---
+
+# No redundant Python casts
+
+Do not wrap a value in `bool()`, `str()`, `int()`, `float()`, or `list()` when the
+static type (parameter annotation, dataclass field, return type) is already that type.
+
+## Required
+
+1. Read the annotation / dataclass field type **before** writing a cast
+2. Trust typed boundaries: annotated `bool` / `str` / `int` params and fields are used as-is
+3. Normalize only when the operation changes meaning (e.g. `.strip()`, clamp, parse from untyped JSON)
+4. Cast at the **untyped boundary** once (JSON / env / external API), not again inside typed models or stores
+
+## Forbidden
+
+```python
+def update_window(self, *, housing_in_view: bool, debug_phase: str) -> None:
+    self._snapshot = replace(
+        self._snapshot,
+        housing_in_view=bool(housing_in_view),
+        debug_phase=str(debug_phase or ""),
+    )
+
+def to_payload(self) -> JsonObject:
+    return {
+        "housing_in_view": bool(self.housing_in_view),  # field is already bool
+        "debug_phase": str(self.debug_phase or ""),     # field is already str
+    }
+```
+
+## Allowed
+
+```python
+def update_window(self, *, housing_in_view: bool, debug_phase: str) -> None:
+    self._snapshot = replace(
+        self._snapshot,
+        housing_in_view=housing_in_view,
+        debug_phase=debug_phase,
+    )
+
+def apply_name(self, *, crop_name: str) -> None:
+    self._name = crop_name.strip()  # strip is normalization, not a type cast
+
+def from_json(self, raw: dict[str, object]) -> None:
+    enabled = bool(raw.get("enabled", False))  # untyped JSON boundary — cast once here
+```
+
+## Smell → fix
+
+| Smell | Fix |
+|-------|-----|
+| `bool(x)` where `x: bool` | Use `x` |
+| `str(x or "")` where `x: str` | Use `x` (or `x.strip()` if trimming) |
+| `str(self.field)` on a `str` dataclass field in `to_payload` | Use `self.field` |
+| Cast in store **and** again at call site | Cast once at the untyped edge only |

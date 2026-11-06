@@ -41,6 +41,31 @@ Prefer:
 - `list[Concrete]`, `dict[str, Concrete]`
 - Annotated public function parameters and return type
 
+### No redundant casts on already-typed values
+
+Do **not** wrap annotated params / dataclass fields in `bool()`, `str()`, `int()`,
+`float()`, or `list()` when the static type is already that type. Read the
+annotation first. Cast once at untyped edges (JSON / env / external API) only.
+`.strip()` / clamp / parse are fine — those change meaning, they are not type casts.
+
+Forbidden:
+
+```python
+def update(self, *, enabled: bool, label: str) -> None:
+    self._enabled = bool(enabled)
+    self._label = str(label or "")
+```
+
+Allowed:
+
+```python
+def update(self, *, enabled: bool, label: str) -> None:
+    self._enabled = enabled
+    self._label = label.strip()
+```
+
+See Cursor rule `python-no-redundant-casts`.
+
 Forbidden:
 
 ```python
@@ -130,6 +155,7 @@ Smell → fix:
 - [ ] Exactly one type definition in the file
 - [ ] No nested class / nested def
 - [ ] No `object` / `Any` / bare collections
+- [ ] No redundant `bool()` / `str()` / `int()` on already-typed params or fields
 - [ ] No variadic tuples, owned NamedTuples, or domain multi-value tuple returns
 - [ ] No `getattr` / `hasattr` duck-typing
 - [ ] New JSON shapes have a TypedDict
